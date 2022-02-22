@@ -75,15 +75,33 @@ function loadImage(imgURL) {
   img.onload = function () {
     var canvas = document.createElement('canvas');
     // resizing image to 320x240 for slow devices
-    var k = (320 + 240) / (img.width + img.height);
-    canvas.width = Math.ceil(img.width * k);
-    canvas.height = Math.ceil(img.height * k);
+    //var k = (320 +240 ) / (img.width + img.height);
+    //var canvas_width = 720;
+    //var canvas_height = 1280;
+    var aspect_ratio = img.width/img.height;
+    //var rescale = img.width/720;
+    canvas.width = Math.min(Math.ceil(350), img.width);//Math.ceil(img.width);
+    canvas.height = Math.ceil( canvas.width/ aspect_ratio);
     var ctx = canvas.getContext('2d');
     ctx.drawImage(img, 0, 0, img.width, img.height,
                   0, 0, canvas.width, canvas.height);
 
-    var data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var imgPixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
+    for(var y = 0; y < imgPixels.height; y++){
+        for(var x = 0; x < imgPixels.width; x++){
+            var i = (y * 4) * imgPixels.width + x * 4;
+            var avg = (imgPixels.data[i] + imgPixels.data[i + 1] + imgPixels.data[i + 2]) / 3;
+            imgPixels.data[i] = avg; 
+            imgPixels.data[i + 1] = avg; 
+            imgPixels.data[i + 2] = avg;
+        }
+    }
+    //console.log(1234);
+    //ctx.putImageData(imgPixels, 0, 0, 0, 0, imgPixels.width, imgPixels.height);
+
+    var data = imgPixels;//ctx.getImageData(0, 0, canvas.width, canvas.height);
+    //var gray_data = gray(data);
     var t0 = Date.now();
     var codes = zbarProcessImageData(data);
     var t = Date.now() - t0;
